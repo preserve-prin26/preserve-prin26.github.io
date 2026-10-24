@@ -209,6 +209,8 @@ nav a[aria-current="page"]{color:var(--accent-ink);background:var(--accent)}
 .items{list-style:none;margin:0;padding:0;display:grid;gap:.7rem}
 .items li{display:grid;gap:.15rem;padding-top:.7rem;border-top:1px solid var(--line)}
 .items .w{font-family:var(--f-mono);font-size:.78rem;color:var(--muted)}
+.items li.has-thumb{grid-template-columns:120px minmax(0,1fr);gap:1rem;align-items:start}
+.items .thumb img{width:120px;height:auto;display:block;border:1px solid var(--line);border-radius:6px}
 .empty{font-size:.92rem;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:.9rem 1rem}
 .channels{display:flex;flex-wrap:wrap;gap:.4rem}
 
@@ -534,7 +536,11 @@ const DISSEMINATION = [
   {key:"publications", label:"Publications", items:[]},
   {key:"datasets", label:"Datasets & artifacts", items:[]},
   {key:"events", label:"Meetings & events", items:[]},
-  {key:"talks", label:"Talks & seminars", items:[]}
+  {key:"talks", label:"Talks & seminars", items:[]},
+  {key:"outreach", label:"Outreach materials", items:[
+    {title:"PRESERVE flyer for students (English)", where:"PDF", date:"2026", url:"assets/preserve-flyer-en.pdf", thumb:"assets/preserve-flyer-en-thumb.jpg"},
+    {title:"PRESERVE flyer for students (Italian)", where:"PDF", date:"2026", url:"assets/preserve-flyer.pdf", thumb:"assets/preserve-flyer-thumb.jpg"}
+  ]}
 ];
 
 /* ===== Rendering ===== */
@@ -584,7 +590,7 @@ function renderDiss(){
   $("#dgrid").innerHTML = DISSEMINATION.filter(d => dFilter==="all" || d.key===dFilter).map(d => `
     <div class="dbox">
       <div class="dbox-head"><h3>${d.label}</h3></div>
-      ${d.items.length ? `<ul class="items">${d.items.map(it => `<li><span class="w">${esc(it.date||"")}${it.where ? " · "+esc(it.where) : ""}</span>${it.url ? `<a href="${it.url}" target="_blank" rel="noopener">${esc(it.title)}</a>` : esc(it.title)}</li>`).join("")}</ul>`
+      ${d.items.length ? `<ul class="items">${d.items.map(it => `<li class="${it.thumb ? "has-thumb" : ""}">${it.thumb ? `<a class="thumb" href="${it.url}" target="_blank" rel="noopener"><img src="${it.thumb}" alt="Preview of ${esc(it.title)}" loading="lazy"></a>` : ""}<div><span class="w">${esc(it.date||"")}${it.where ? " · "+esc(it.where) : ""}</span><br>${it.url ? `<a href="${it.url}" target="_blank" rel="noopener">${esc(it.title)}</a>` : esc(it.title)}</div></li>`).join("")}</ul>`
         : `<p class="empty">Coming soon.</p>`}
     </div>`).join("");
 }
