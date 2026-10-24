@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" type="image/png" href="assets/preserve-mark.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>PRESERVE Project</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="PRESERVE: Preserving Developer Intent in Trustworthy AI-Assisted Software Engineering. PRIN 2026 research project.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sticky top bar + one view per section (hash routed); views are stacked bands on a 1120px column.
+   The intent loop (capture -> formalize -> verify -> optimize) is the recurring visual device. */
+:root{
+  --navy:#1c3260;        /* logo infinity, dark side */
+  --teal:#2c6167;        /* logo crossover */
+  --green:#4c9a5f;       /* logo leaf */
+  --leaf:#63b06d;        /* logo highlight */
+  --bg:#f5f7f6;
+  --surface:#ffffff;
+  --surface-2:#eaf0ee;
+  --ink:#13203a;
+  --muted:#51607a;
+  --line:#d5dfdc;
+  --accent:var(--navy);
+  --accent-ink:#ffffff;
+  --link:#1f5f86;
+  --chip:#e3eee8;
+  --chip-ink:#24573a;
+  --plate:#ffffff;       /* logo always sits on a light plate */
+  --grad:linear-gradient(100deg,#1c3260 0%,#2c6167 52%,#4c9a5f 100%);
+  --f-display:"Sora","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans","Segoe UI",system-ui,-apple-system,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1626; --surface:#142036; --surface-2:#1a2a44; --ink:#e6edf3; --muted:#9fb0c6;
+    --line:#26385a; --accent:#7cc48a; --accent-ink:#0b1a12; --link:#8cc7e8;
+    --chip:#1d3a2c; --chip-ink:#a6dcb0; --plate:#f3f7f5; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1626; --surface:#142036; --surface-2:#1a2a44; --ink:#e6edf3; --muted:#9fb0c6;
+  --line:#26385a; --accent:#7cc48a; --accent-ink:#0b1a12; --link:#8cc7e8;
+  --chip:#1d3a2c; --chip-ink:#a6dcb0; --plate:#f3f7f5; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+a{color:var(--link);text-underline-offset:3px}
+a:focus-visible,button:focus-visible{outline:3px solid var(--leaf);outline-offset:2px;border-radius:4px}
+h1,h2,h3,h4{font-family:var(--f-display);line-height:1.2;text-wrap:balance;margin:0}
+h2{font-size:clamp(1.6rem,3.2vw,2.1rem);font-weight:600;letter-spacing:-.01em}
+h3{font-size:1.15rem;font-weight:600}
+p{margin:0}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--green)}
+.mono{font-family:var(--f-mono)}
+.lede{font-size:1.125rem;color:var(--muted);max-width:68ch}
+.prose{max-width:68ch;display:grid;gap:1rem}
+
+/* top bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.bar .wrap{display:flex;align-items:center;gap:1rem;min-height:64px;flex-wrap:wrap;padding-block:6px}
+.brand{display:flex;align-items:center;gap:.6rem;text-decoration:none;color:var(--ink);margin-right:auto}
+.brand .plate{background:var(--plate);border-radius:8px;padding:3px 6px;display:flex}
+.brand img{height:30px;width:auto;display:block}
+.brand b{font-family:var(--f-display);font-weight:600;letter-spacing:.28em;font-size:1rem}
+nav{display:flex;gap:.25rem;flex-wrap:wrap}
+nav a{font-family:var(--f-display);font-size:.9rem;font-weight:500;color:var(--muted);text-decoration:none;padding:.45rem .7rem;border-radius:8px}
+nav a:hover{color:var(--ink);background:var(--surface-2)}
+nav a[aria-current="page"]{color:var(--accent-ink);background:var(--accent)}
+
+/* views */
+.view{padding-block:3rem 4rem}
+.view[hidden]{display:none!important}
+.sec{display:grid;gap:1.25rem;padding-block:2.5rem}
+.sec + .sec{border-top:1px solid var(--line)}
+.sec-head{display:grid;gap:.5rem}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:2.5rem;align-items:center;padding-block:1rem 2.5rem}
+.hero h1{font-size:clamp(2rem,4.6vw,3.2rem);font-weight:600;letter-spacing:-.02em}
+.hero h1 em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .txt{display:grid;gap:1.1rem;min-width:0}
+.hero .plate{background:var(--plate);border:1px solid var(--line);border-radius:18px;padding:1.5rem;display:flex;justify-content:center}
+.hero .plate img{width:100%;max-width:420px;height:auto}
+.facts{display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;font-family:var(--f-mono);font-size:.85rem;color:var(--muted)}
+.facts b{color:var(--ink);font-weight:500}
+.cta{display:flex;flex-wrap:wrap;gap:.6rem}
+.btn{display:inline-flex;align-items:center;gap:.4rem;font-family:var(--f-display);font-weight:500;font-size:.95rem;padding:.65rem 1.05rem;border-radius:9px;text-decoration:none;border:1px solid var(--line);color:var(--ink);background:var(--surface)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn:hover{filter:brightness(1.06)}
+
+/* the loop */
+.loop{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface)}
+.phase{padding:1.4rem 1.25rem;display:grid;gap:.5rem;align-content:start;position:relative;min-width:0}
+.phase + .phase{border-left:1px solid var(--line)}
+.phase .n{font-family:var(--f-mono);font-size:.78rem;color:var(--muted)}
+.phase h3{font-size:1.2rem}
+.phase p{font-size:.95rem;color:var(--muted)}
+.phase::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:var(--grad);background-size:400% 100%}
+.phase:nth-child(1)::before{background-position:0 0}.phase:nth-child(2)::before{background-position:33% 0}
+.phase:nth-child(3)::before{background-position:66% 0}.phase:nth-child(4)::before{background-position:100% 0}
+.loop-note{font-size:.9rem;color:var(--muted);font-family:var(--f-mono)}
+
+/* incidents/why */
+.why{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+.gap{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:1.1rem 1.2rem;display:grid;gap:.35rem;min-width:0}
+.gap .k{font-family:var(--f-mono);font-size:.75rem;color:var(--green);letter-spacing:.06em}
+.gap p{color:var(--muted);font-size:.95rem}
+
+/* objectives */
+.objs{display:grid;gap:0}
+.obj{display:grid;grid-template-columns:64px minmax(0,1fr);gap:1.25rem;padding-block:1.25rem;border-top:1px solid var(--line)}
+.obj:last-child{border-bottom:1px solid var(--line)}
+.obj .code{font-family:var(--f-display);font-weight:700;font-size:1.6rem;color:var(--teal)}
+.obj h3{margin-bottom:.35rem}
+.obj p{color:var(--muted);font-size:.95rem}
+.kpis{list-style:none;margin:0;padding:0;display:grid;gap:.3rem;font-size:.88rem}
+.kpis li{display:flex;gap:.5rem;align-items:baseline}
+.kpis .v{font-family:var(--f-mono);font-weight:500;color:var(--chip-ink);background:var(--chip);border-radius:5px;padding:0 .4rem;white-space:nowrap}
+.wpref{font-family:var(--f-mono);font-size:.8rem;color:var(--muted);margin-top:.5rem}
+
+/* impact */
+.impact{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.25rem 2rem}
+.impact div{display:grid;gap:.3rem;min-width:0}
+.impact h4{font-size:1rem;font-weight:600}
+.impact p{font-size:.93rem;color:var(--muted)}
+.funding{display:flex;gap:1rem;align-items:center;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:1rem 1.2rem;font-size:.92rem;color:var(--muted)}
+.funding b{color:var(--ink)}
+
+/* team */
+.units{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.25rem}
+.unit{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:1.25rem;display:grid;gap:1rem;align-content:start;min-width:0}
+.unit-head{display:flex;gap:.75rem;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.unit-head h3{font-size:1.1rem}
+.unit-head .city{font-size:.85rem;color:var(--muted)}
+.tag{font-family:var(--f-mono);font-size:.72rem;font-weight:500;letter-spacing:.06em;color:var(--chip-ink);background:var(--chip);padding:.2rem .5rem;border-radius:5px;white-space:nowrap}
+.unit .focus{font-size:.92rem;color:var(--muted)}
+.leads{display:flex;flex-wrap:wrap;gap:.35rem}
+.people{display:grid;gap:.75rem}
+.person{display:grid;grid-template-columns:64px minmax(0,1fr);gap:.85rem;align-items:center}
+.ph{width:64px;height:64px;border-radius:50%;overflow:hidden;background:var(--grad);display:grid;place-items:center;color:#fff;font-family:var(--f-display);font-weight:600;font-size:1.15rem;letter-spacing:.04em}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.person .nm{font-family:var(--f-display);font-weight:600;font-size:1rem}
+.person .nm a{color:inherit;text-decoration-color:var(--line)}
+.person .nm a:hover{text-decoration-color:var(--green)}
+.person .rl{font-size:.86rem;color:var(--muted)}
+.role{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:var(--accent-ink);background:var(--accent);border-radius:4px;padding:.05rem .4rem;margin-left:.35rem;vertical-align:2px;white-space:nowrap}
+.board{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.25rem 2rem}
+.board > div{padding-block:.8rem;border-top:1px solid var(--line);display:grid;gap:.15rem;min-width:0}
+.board b{font-family:var(--f-display);font-weight:600}
+.board span{font-size:.9rem;color:var(--muted)}
+.board i{font-style:normal;font-size:.85rem;color:var(--muted);opacity:.9}
+
+/* work packages */
+.wp-map{display:grid;gap:.5rem}
+.wps{display:grid;gap:1rem}
+.wp{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.wp summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:1rem;align-items:center;padding:1rem 1.25rem}
+.wp summary::-webkit-details-marker{display:none}
+.wp .id{font-family:var(--f-display);font-weight:700;font-size:1.35rem;color:var(--teal)}
+.wp .t{font-family:var(--f-display);font-weight:600;font-size:1.05rem}
+.wp .meta{font-size:.85rem;color:var(--muted);display:flex;gap:.4rem 1rem;flex-wrap:wrap;margin-top:.2rem}
+.wp .chev{font-family:var(--f-mono);color:var(--muted);transition:transform .2s}
+.wp[open] .chev{transform:rotate(90deg)}
+.wp-body{padding:0 1.25rem 1.25rem;display:grid;gap:1.1rem}
+.wp-body .goal{color:var(--muted)}
+.tasks{display:grid;gap:.1rem}
+.task{display:grid;grid-template-columns:52px minmax(0,1fr) minmax(0,38%);gap:.75rem;align-items:center;padding-block:.45rem;border-top:1px dashed var(--line);font-size:.92rem}
+.task .tid{font-family:var(--f-mono);font-size:.8rem;color:var(--muted)}
+.task .who{font-size:.8rem;color:var(--muted);margin-top:.1rem}
+.track{position:relative;height:12px;border-radius:3px;background:repeating-linear-gradient(90deg,var(--surface-2) 0,var(--surface-2) calc(100%/3 - 1px),var(--line) calc(100%/3 - 1px),var(--line) calc(100%/3))}
+.track i{position:absolute;top:0;bottom:0;border-radius:3px;background:var(--grad)}
+.track-scale{display:grid;grid-template-columns:repeat(3,1fr);font-family:var(--f-mono);font-size:.7rem;color:var(--muted)}
+.dels{list-style:none;margin:0;padding:0;display:grid;gap:.35rem;font-size:.9rem}
+.dels li{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:.75rem}
+.dels .tid{font-family:var(--f-mono);font-size:.8rem;color:var(--muted)}
+.dels .ty{font-family:var(--f-mono);font-size:.75rem;color:var(--chip-ink);background:var(--chip);padding:0 .35rem;border-radius:4px;height:fit-content;white-space:nowrap}
+.sub{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ms{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.75rem}
+.ms div{border-top:3px solid var(--green);padding-top:.6rem;display:grid;gap:.2rem;min-width:0}
+.ms .m{font-family:var(--f-mono);font-size:.8rem;color:var(--muted)}
+.ms b{font-family:var(--f-display);font-weight:600;font-size:.95rem;line-height:1.3}
+.effort{overflow-x:auto}
+.effort table{border-collapse:collapse;width:100%;min-width:640px;font-size:.88rem;font-variant-numeric:tabular-nums}
+.effort th,.effort td{padding:.45rem .6rem;border-bottom:1px solid var(--line);text-align:right}
+.effort th:first-child,.effort td:first-child{text-align:left}
+.effort thead th{font-family:var(--f-mono);font-weight:500;font-size:.75rem;color:var(--muted)}
+.effort tfoot td{font-weight:600}
+.effort td.lead{color:var(--chip-ink);font-weight:600}
+
+/* dissemination */
+.dtabs{display:flex;gap:.4rem;flex-wrap:wrap}
+.dtabs button{font:inherit;font-family:var(--f-display);font-size:.88rem;padding:.4rem .8rem;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.dtabs button[aria-pressed="true"]{background:var(--accent);border-color:transparent;color:var(--accent-ink)}
+.dgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.25rem}
+.dbox{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:1.2rem 1.25rem;display:grid;gap:.8rem;align-content:start;min-width:0}
+.dbox-head{display:flex;justify-content:space-between;gap:1rem;align-items:baseline;flex-wrap:wrap}
+.dbox .target{font-family:var(--f-mono);font-size:.78rem;color:var(--muted)}
+.items{list-style:none;margin:0;padding:0;display:grid;gap:.7rem}
+.items li{display:grid;gap:.15rem;padding-top:.7rem;border-top:1px solid var(--line)}
+.items .w{font-family:var(--f-mono);font-size:.78rem;color:var(--muted)}
+.empty{font-size:.92rem;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:.9rem 1rem}
+.channels{display:flex;flex-wrap:wrap;gap:.4rem}
+
+/* join */
+.join{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:2rem;align-items:start}
+.band{background:var(--grad);color:#fff;border-radius:18px;padding:2rem;display:grid;gap:1rem}
+.band h2{color:#fff}
+.band p{color:#e7f2ec}
+.band .big{font-family:var(--f-display);font-weight:700;font-size:3rem;line-height:1}
+.paths{display:grid;gap:.9rem}
+.path{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:1rem 1.2rem;display:grid;gap:.3rem}
+.path p{color:var(--muted);font-size:.94rem}
+.topics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+.topics div{border-left:3px solid var(--green);padding:.2rem 0 .2rem .8rem;display:grid;gap:.1rem;min-width:0}
+.topics b{font-family:var(--f-display);font-weight:600;font-size:.95rem}
+.topics span{font-size:.86rem;color:var(--muted)}
+
+footer{border-top:1px solid var(--line);background:var(--surface)}
+footer .wrap{padding-block:2rem;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1.5rem;font-size:.9rem;color:var(--muted)}
+footer b{color:var(--ink);font-family:var(--f-display)}
+footer .fund{text-align:right}
+@media (max-width:680px){footer .fund{text-align:left}}
+.copy{font:inherit;font-family:var(--f-mono);font-size:.8rem;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;padding:.15rem .5rem;cursor:pointer;margin-left:.4rem}
+
+@media (max-width:900px){
+  .hero{grid-template-columns:1fr}
+  .hero .plate{order:-1}
+  .loop{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .phase:nth-child(3){border-left:0}
+  .phase:nth-child(n+3){border-top:1px solid var(--line)}
+  .impact,.topics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ms{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .join{grid-template-columns:1fr}
+}
+@media (max-width:680px){
+  .why,.units,.board,.dgrid,.impact,.topics{grid-template-columns:1fr}
+  .obj{grid-template-columns:44px minmax(0,1fr)}
+  .obj .kpis{grid-column:2}
+  .task{grid-template-columns:44px minmax(0,1fr)}
+  .task .track,.task .tr{grid-column:2}
+  .wp summary{grid-template-columns:52px minmax(0,1fr) auto}
+  footer .wrap{grid-template-columns:1fr}
+  .bar .wrap{flex-wrap:nowrap;gap:.5rem}
+  .brand{margin-right:0;flex:none}
+  nav{flex-wrap:nowrap;overflow-x:auto;min-width:0;scrollbar-width:none}
+  nav a{white-space:nowrap;padding:.4rem .55rem;font-size:.85rem}
+}
+@media (max-width:460px){
+  .loop{grid-template-columns:1fr}
+  .phase + .phase{border-left:0;border-top:1px solid var(--line)}
+  .ms{grid-template-columns:1fr}
+  .brand b{display:none}
+}
+
+/* work package cards */
+.wpgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.25rem}
+.wpc{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:1.25rem;display:grid;gap:.6rem;align-content:start;min-width:0;position:relative;overflow:hidden}
+.wpc::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:var(--grad)}
+.wpc-head{display:flex;justify-content:space-between;align-items:center}
+.wpc .id{font-family:var(--f-display);font-weight:700;font-size:1.35rem;color:var(--teal)}
+.wpc h3{font-size:1.05rem}
+.wpc p{color:var(--muted);font-size:.95rem}
+.wpc-lead{font-family:var(--f-mono);font-size:.78rem;color:var(--muted);margin-top:.25rem}
+.band{max-width:760px}
+@media (max-width:900px){.wpgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:680px){.wpgrid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="wrap">
+    <a class="brand" href="#home" aria-label="PRESERVE home">
+      <span class="plate"><img src="assets/preserve-mark.png" alt=""></span>
+      <b>PRESERVE</b>
+    </a>
+    <nav aria-label="Sections">
+      <a href="#home">Home</a>
+      <a href="#team">Team</a>
+      <a href="#workpackages">Work Packages</a>
+      <a href="#dissemination">Dissemination</a>
+      <a href="#join">Join us</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<!-- HOME -->
+<section class="view" id="v-home" data-view="home">
+  <div class="wrap">
+    <div class="hero">
+      <div class="txt">
+        <span class="eyebrow">PRIN 2026 · Research project of national interest</span>
+        <h1>Preserving developer intent in <em>trustworthy AI-assisted</em> software engineering</h1>
+        <p class="lede">Developers increasingly tell AI agents what they want instead of writing the code themselves. PRESERVE makes that intent a first-class engineering artifact, captured, formalized, verified and optimized across the whole software lifecycle, under continuous human oversight.</p>
+        <div class="cta"><a class="btn primary" href="#workpackages">Explore the work packages</a><a class="btn" href="#join">Join us</a></div>
+      </div>
+      <div class="plate"><img src="assets/preserve-logo.png" alt="PRESERVE logo: an infinity loop joining a code symbol and a growing leaf, with the tagline Preserving Developer Intent in Trustworthy AI-Assisted Software Engineering"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Why it matters</span>
+        <h2>Prompts have become specifications. Nobody engineers them.</h2>
+      </div>
+      <div class="prose">
+        <p>In April 2026 an AI coding agent deleted a company's production database and its backups in nine seconds, despite explicit instructions forbidding destructive actions. Other analyses counted more than 380,000 publicly exposed assets produced by AI-assisted development platforms, thousands of them leaking sensitive corporate and personal data.</p>
+        <p>These failures share a root cause. Developer intent, meaning the functional and non-functional goals, architectural assumptions, governance constraints and trade-offs a system must respect, is handed to the AI as a transient prompt and then lost. The literature has started to call this <em>intent debt</em>. Agentic and distributed development make it worse, because intent is split across many agents, components and artifacts that can silently conflict.</p>
+      </div>
+      <div class="why">
+        <div class="gap"><span class="k">GAP 1</span><h3>No continuous intent engineering</h3><p>Prompts are optimized for one generation step and then discarded, rather than managed as artifacts.</p></div>
+        <div class="gap"><span class="k">GAP 2</span><h3>No adaptive human-in-the-loop</h3><p>Developers validate through fixed feedback patterns, with no model of when and how they should step in.</p></div>
+        <div class="gap"><span class="k">GAP 3</span><h3>Verification comes too late</h3><p>Testing and formal checks happen after generation instead of following intent through the lifecycle.</p></div>
+        <div class="gap"><span class="k">GAP 4</span><h3>Optimization ignores priorities</h3><p>Quality attributes are optimized one at a time, without the trade-offs the developer actually asked for.</p></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Approach</span>
+        <h2>The intent engineering loop</h2>
+        <p class="lede">PRESERVE establishes <strong>intent engineering</strong> as a research field. It is operationalized as an iterative four-phase loop, with the developer governing every step.</p>
+      </div>
+      <div class="loop" role="list">
+        <div class="phase" role="listitem"><span class="n">phase 1</span><h3>Capture</h3><p>Developers and AI agents refine and structure intent together: requirements, compliance constraints, architectural decisions and sustainability concerns.</p></div>
+        <div class="phase" role="listitem"><span class="n">phase 2</span><h3>Formalize</h3><p>Intent becomes formal and semi-formal representations, so ambiguities, contradictions, requirement drift and unsafe assumptions can be detected automatically.</p></div>
+        <div class="phase" role="listitem"><span class="n">phase 3</span><h3>Verify</h3><p>Generated code is continuously checked against validated specifications, so intent survives every step of the AI-assisted workflow.</p></div>
+        <div class="phase" role="listitem"><span class="n">phase 4</span><h3>Optimize &amp; evolve</h3><p>Systems are tuned to the developer's quality and sustainability trade-offs, and intent is kept as versioned, traceable artifacts that evolve with the code.</p></div>
+      </div>
+      <p class="loop-note">↻ A shared knowledge base collects traces and lessons from every phase and feeds them back into the quality models.</p>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Objectives</span>
+        <h2>Four objectives</h2>
+      </div>
+      <div class="objs" id="objs"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Expected impact</span>
+        <h2>Beyond the lab</h2>
+      </div>
+      <div class="impact">
+        <div><h4>Scientific</h4><p>Establishes intent engineering as a new research direction, with shared models, benchmarks and methods that the research community can reuse.</p></div>
+        <div><h4>Industrial</h4><p>Gives companies practical workflows to supervise, verify and optimize AI-generated software, tested together with industrial partners.</p></div>
+        <div><h4>Economic</h4><p>Reduces the cost of debugging, verifying and maintaining unreliable AI-generated code.</p></div>
+        <div><h4>Societal</h4><p>Promotes transparency, accountability and human oversight in AI-assisted development, in line with the EU AI Act.</p></div>
+        <div><h4>Environmental</h4><p>Encourages more sustainable software by avoiding wasteful code generation and inefficient deployments.</p></div>
+        <div><h4>Training</h4><p>Brings trustworthy AI-assisted software engineering into courses, theses and doctoral training.</p></div>
+      </div>
+      <div class="funding"><b>Funded by the Italian Ministry of University and Research (MUR)</b><span>PRIN 2026 · Prot. <span class="mono">2026PT85XP</span></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section class="view" id="v-team" data-view="team" hidden>
+  <div class="wrap">
+    <div class="sec" style="padding-top:0">
+      <div class="sec-head">
+        <span class="eyebrow">Team</span>
+        <h2>Research units</h2>
+        <p class="lede">PRESERVE brings together empirical software engineering, NLP and human-in-the-loop interaction, testing and formal verification, maintainability, performance engineering and distributed systems.</p>
+      </div>
+      <div class="units" id="units"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Strategic Advisory Board</span>
+        <h2>International advisors</h2>
+        <p class="lede">Researchers and practitioners who review progress, deliverables, risks and future directions in annual panels.</p>
+      </div>
+      <div class="board" id="board"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Industry partners</span>
+        <h2>Companies supporting the project</h2>
+        <p class="lede">They contribute to requirements elicitation, use-case definition and validation, across geospatial AI, enterprise software workflows, cybersecurity, and agentic and distributed systems.</p>
+      </div>
+      <div class="board" id="partners"></div>
+    </div>
+  </div>
+</section>
+
+<!-- WORK PACKAGES -->
+<section class="view" id="v-workpackages" data-view="workpackages" hidden>
+  <div class="wrap">
+    <div class="sec" style="padding-top:0">
+      <div class="sec-head">
+        <span class="eyebrow">Work packages</span>
+        <h2>Six technical work packages</h2>
+        <p class="lede">WP2 builds the foundations of intent engineering and feeds every other work package. WP3 and WP4 formalize and verify intent, while WP5, WP6 and WP7 cover three dimensions of intent-aware optimization.</p>
+      </div>
+      <div class="wpgrid" id="wps"></div>
+    </div>
+  </div>
+</section>
+
+<!-- DISSEMINATION -->
+<section class="view" id="v-dissemination" data-view="dissemination" hidden>
+  <div class="wrap">
+    <div class="sec" style="padding-top:0">
+      <div class="sec-head">
+        <span class="eyebrow">Dissemination &amp; open science</span>
+        <h2>Results, data and events</h2>
+        <p class="lede">Publications, datasets, meetings and talks from the project will be listed here as they become available.</p>
+      </div>
+      <div class="dtabs" id="dtabs" role="group" aria-label="Filter"></div>
+      <div class="dgrid" id="dgrid"></div>
+    </div>
+  </div>
+</section>
+
+<!-- JOIN -->
+<section class="view" id="v-join" data-view="join" hidden>
+  <div class="wrap">
+    <div class="sec" style="padding-top:0">
+      <div class="band">
+        <span class="eyebrow" style="color:#cfe9d6">Join us</span>
+        <h2>Shape how people and AI build software together</h2>
+        <p>Curious about AI coding agents, trustworthy software and human-AI collaboration? PRESERVE welcomes students and young researchers who want to work with us on these topics.</p>
+        <p>If you are interested, get in touch with the referent of the research unit closest to you.</p>
+        <div class="cta"><a class="btn" href="#team">See the research units</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div><b>PRESERVE</b><br>Preserving Developer Intent in Trustworthy AI-Assisted Software Engineering</div>
+    <div class="fund">PRIN 2026 · Prot. <span class="mono">2026PT85XP</span><br>Funded by the Italian Ministry of University and Research (MUR)</div>
+  </div>
+</footer>
+
+<script>
+/* ===== Editable content ===== */
+const UNITS = [
+  {code:"UNISA", name:"University of Salerno", city:"Fisciano (SA)", leads:["WP1","WP4"],
+   focus:"Project coordination. Empirical software engineering, software quality and intent-preserving verification and validation.",
+   people:[
+     {n:"Fabio Palomba", r:"Associate Professor", tag:"PI", photo:"assets/palomba.jpg", url:"https://fpalomba.github.io/"},
+     {n:"Gemma Catolino", photo:"assets/catolino.jpg", r:"Senior Assistant Professor (RTD-B)"},
+     {n:"Dario Di Nucci", photo:"assets/dinucci.jpg", r:"Associate Professor"}]},
+  {code:"UNIMOL", name:"University of Molise", city:"Campobasso", leads:["WP5","WP8"],
+   focus:"Code readability and understandability, maintainability-aware optimization, dissemination and open science.",
+   people:[
+     {n:"Simone Scalabrino", r:"Associate Professor", tag:"Co-PI", photo:"assets/scalabrino.jpg", url:"https://sscalabrino.github.io"}]},
+  {code:"UNIVAQ", name:"University of L'Aquila", city:"L'Aquila", leads:["WP6"],
+   focus:"Software performance engineering, model-driven engineering, predictive modeling and multi-objective optimization.",
+   people:[
+     {n:"Vittorio Cortellessa", photo:"assets/cortellessa.jpg", r:"Full Professor", tag:"Unit lead", url:"https://www.disim.univaq.it/VittorioCortellessa"},
+     {n:"Juri Di Rocco", photo:"assets/dirocco.jpg", r:"Senior Assistant Professor (RTD-B)"},
+     {n:"Daniele Di Pompeo", photo:"assets/dipompeo.jpg", r:"Assistant Professor (RTD-A)"},
+     {n:"Michele Tucci", photo:"assets/tucci.jpg", r:"Assistant Professor (RTD-A)"},
+     {n:"Luca Traini", photo:"assets/traini.jpg", r:"Assistant Professor (RTD-A)"},
+     {n:"Federico Di Menna", photo:"assets/dimenna.jpg", r:"Researcher"}]},
+  {code:"UNIBA", name:"University of Bari Aldo Moro", city:"Bari", leads:["WP2"],
+   focus:"Intent engineering foundations: benchmark construction, repository mining, reproducibility and prompt-quality analysis.",
+   people:[
+     {n:"Fabio Calefato", photo:"assets/calefato.jpg", r:"Associate Professor", tag:"Unit lead", url:"https://collab.di.uniba.it/fabio"},
+     {n:"Fabio Abbattista", r:"Associate Professor"}]},
+  {code:"UNIROMA2", name:"University of Rome Tor Vergata", city:"Roma", leads:["WP3"],
+   focus:"Human-in-the-loop intent formalization: ambiguity clarification, adaptive human involvement and intent traceability.",
+   people:[
+     {n:"Davide Falessi", photo:"assets/falessi.jpg", r:"Full Professor", tag:"Unit lead", url:"https://directory.uniroma2.it/index.php/chart/dettagliDocente/8633"},
+     {n:"Vincenzo Grassi", r:"Full Professor"},
+     {n:"Vittoria De Nitto Personè", r:"Associate Professor"}]},
+  {code:"POLIMI", name:"Politecnico di Milano", city:"Milano", leads:["WP7"],
+   focus:"Distributed and data-intensive systems, runtime observability, telemetry analysis and formal verification.",
+   people:[
+     {n:"Alessandro Margara", photo:"assets/margara.jpg", r:"Associate Professor", tag:"Unit lead", url:"https://margara.faculty.polimi.it"},
+     {n:"Marcello Maria Bersani", photo:"assets/bersani.jpg", r:"Associate Professor"}]}
+];
+
+const BOARD = [
+  ["Sebastian Baltes","Heidelberg University, Germany","Empirical software engineering, developer productivity, AI-assisted development workflows"],
+  ["Marianna Di Gregorio","Poste Italiane S.p.A., Italy","User eXperience Lead; human-centered design, UX, industrial AI adoption"],
+  ["Emanuele Gentili","MDBA Italy","Senior Software Engineer; software engineering, industrial AI adoption"],
+  ["Helena Holmström Olsson","Malmö University, Sweden","AI engineering, MLOps, industrial AI adoption"],
+  ["Ruzanna Chitchyan","University of Bristol, UK","Sustainable software engineering, socio-technical governance, MLOps"],
+  ["Samuel Kounev","University of Würzburg, Germany","Performance engineering, AIOps, self-adaptive systems"],
+  ["Anita Sarma","Oregon State University, USA","Socio-technical software engineering, human-centered AI, diversity and inclusion"],
+  ["Alexander Serebrenik","Eindhoven University of Technology, The Netherlands","Socio-technical software engineering, human aspects, sustainability"]
+];
+const PARTNERS = [
+  ["Apuliasoft","Contact: Giuseppe Santoro, Co-founder & CEO",""],
+  ["Planetek","Contact: Maria Pappalepore, CEO",""],
+  ["Astrakode","Contact: Fabiano Izzo, CEO",""],
+  ["Datasound S.r.l.","Contact: Paola Squeglia, CEO",""]
+];
+
+const OBJECTIVES = [
+  {c:"O1", t:"Empirical and formal foundations", d:"Quality models, benchmarks and formal representations for developer intent and context, collected in a continuously evolving knowledge base.", wp:"WP2"},
+  {c:"O2", t:"Human-in-the-loop intent preservation", d:"Adaptive workflows deciding when developers should intervene, which questions to ask and how, to elicit, refine and structure intent.", wp:"WP3"},
+  {c:"O3", t:"Intent-based verification and validation", d:"Intent turned into executable specifications, constraints and test suites that check functional, non-functional and compliance alignment.", wp:"WP4"},
+  {c:"O4", t:"Intent-aware optimization", d:"Multi-objective optimization of maintainability, efficiency, deployment and operation, guided by developer priorities and runtime telemetry.", wp:"WP5 · WP6 · WP7"}
+];
+
+const WPS = [
+  {id:"WP2", t:"Continuous Knowledge Extraction and Intent Engineering", lead:"UNIBA", obj:"O1",
+   s:"Builds the foundations of intent engineering: intent-aware prompt-code benchmarks, reproducibility protocols, and quality models that make developer intent measurable. Its knowledge base gathers evidence from all the other work packages."},
+  {id:"WP3", t:"Human-in-the-Loop Intent Engineering and Formalization", lead:"UNIROMA2", obj:"O2",
+   s:"Defines how developers and AI agents clarify, disambiguate and prioritize intent together, and how that intent becomes traceable, executable specifications."},
+  {id:"WP4", t:"Intent-Preserving Verification and Validation", lead:"UNISA", obj:"O3",
+   s:"Turns intent into tests, constraints and verification workflows that check whether AI-generated code respects functional, non-functional and compliance requirements."},
+  {id:"WP5", t:"Intent-Preserving Cognitive and Maintainability Optimization", lead:"UNIMOL", obj:"O4",
+   s:"Makes AI-generated code easier to understand and maintain, predicting cognitive burden and applying refactorings that keep the original intent intact."},
+  {id:"WP6", t:"Intent-Preserving Efficiency and Resource-Aware Optimization", lead:"UNIVAQ", obj:"O4",
+   s:"Predicts performance, energy and cost of AI-generated software and optimizes them as a multi-objective problem driven by the developer's priorities."},
+  {id:"WP7", t:"Intent-Preserving Deployment and Operational Optimization", lead:"POLIMI", obj:"O4",
+   s:"Optimizes how AI-generated systems are deployed and run, using runtime telemetry and architectural adaptation to balance quality and operational costs."}
+];
+
+/* Dissemination: add entries here. Each item: {title, where, date, url} */
+const DISSEMINATION = [
+  {key:"publications", label:"Publications", items:[]},
+  {key:"datasets", label:"Datasets & artifacts", items:[]},
+  {key:"events", label:"Meetings & events", items:[]},
+  {key:"talks", label:"Talks & seminars", items:[]}
+];
+
+/* ===== Rendering ===== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const initials = n => n.split(" ").filter(w => /^[A-ZÀ-Ý]/.test(w)).map(w => w[0]).slice(0,2).join("");
+
+$("#objs").innerHTML = OBJECTIVES.map(o => `
+  <div class="obj">
+    <div class="code">${o.c}</div>
+    <div><h3>${esc(o.t)}</h3><p>${esc(o.d)}</p></div>
+  </div>`).join("");
+
+$("#units").innerHTML = UNITS.map(u => `
+  <article class="unit">
+    <div class="unit-head">
+      <div><h3>${esc(u.name)}</h3><div class="city">${esc(u.city)} · <span class="mono">${u.code}</span></div></div>
+    </div>
+    <p class="focus">${esc(u.focus)}</p>
+    <div class="people">${u.people.map(p => `
+      <div class="person">
+        <div class="ph">${p.photo ? `<img src="${p.photo}" alt="Portrait of ${esc(p.n)}" loading="lazy">` : `<span aria-hidden="true">${initials(p.n)}</span>`}</div>
+        <div>
+          <div class="nm">${p.url ? `<a href="${p.url}" target="_blank" rel="noopener">${esc(p.n)}</a>` : esc(p.n)}${p.tag ? `<span class="role">${p.tag}</span>` : ""}</div>
+          <div class="rl">${esc(p.r)}</div>
+        </div>
+      </div>`).join("")}</div>
+  </article>`).join("");
+
+const boardHTML = list => list.map(([n,a,e]) => `<div><b>${esc(n)}</b><span>${esc(a)}</span>${e ? `<i>${esc(e)}</i>` : ""}</div>`).join("");
+$("#board").innerHTML = boardHTML(BOARD);
+$("#partners").innerHTML = boardHTML(PARTNERS);
+
+const UNITNAME = Object.fromEntries(UNITS.map(u => [u.code, u.name]));
+$("#wps").innerHTML = WPS.map(w => `
+  <article class="wpc" id="${w.id.toLowerCase()}">
+    <div class="wpc-head"><span class="id">${w.id}</span><span class="tag">Objective ${w.obj.slice(1)}</span></div>
+    <h3>${esc(w.t)}</h3>
+    <p>${esc(w.s)}</p>
+    <div class="wpc-lead">Led by ${esc(UNITNAME[w.lead])}</div>
+  </article>`).join("");
+
+let dFilter = "all";
+function renderDiss(){
+  $("#dtabs").innerHTML = [["all","All"], ...DISSEMINATION.map(d => [d.key,d.label])]
+    .map(([k,l]) => `<button type="button" id="df-${k}" data-k="${k}" aria-pressed="${k===dFilter}">${l}</button>`).join("");
+  $("#dgrid").innerHTML = DISSEMINATION.filter(d => dFilter==="all" || d.key===dFilter).map(d => `
+    <div class="dbox">
+      <div class="dbox-head"><h3>${d.label}</h3></div>
+      ${d.items.length ? `<ul class="items">${d.items.map(it => `<li><span class="w">${esc(it.date||"")}${it.where ? " · "+esc(it.where) : ""}</span>${it.url ? `<a href="${it.url}" target="_blank" rel="noopener">${esc(it.title)}</a>` : esc(it.title)}</li>`).join("")}</ul>`
+        : `<p class="empty">Coming soon.</p>`}
+    </div>`).join("");
+}
+$("#dtabs").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; dFilter = b.dataset.k; renderDiss(); });
+renderDiss();
+
+/* hash routing */
+const VIEWS = ["home","team","workpackages","dissemination","join"];
+function route(){
+  let h = (location.hash || "#home").slice(1);
+  let target = null;
+  if (/^wp[2-7]$/.test(h)) { target = h; h = "workpackages"; }
+  if (!VIEWS.includes(h)) h = "home";
+  document.querySelectorAll(".view").forEach(v => v.hidden = v.dataset.view !== h);
+  document.querySelectorAll("nav a").forEach(a => a.setAttribute("aria-current", a.getAttribute("href") === "#"+h ? "page" : "false"));
+  if (target) { document.getElementById(target).scrollIntoView(); } else window.scrollTo(0,0);
+}
+window.addEventListener("hashchange", route);
+route();
+
+</script>
+</body>
+</html>
